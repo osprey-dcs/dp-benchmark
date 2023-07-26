@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
+import ch.qos.logback.classic.Logger;
 import com.influxdb.client.*;
 import com.influxdb.client.domain.Bucket;
 import com.influxdb.client.write.Point;
@@ -15,12 +16,11 @@ import com.influxdb.annotations.Measurement;
 import com.influxdb.exceptions.InfluxException;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.LoggerFactory;
 
 public class InfluxDbBenchmark {
 
-    private static final Logger logger = LogManager.getLogger();
+    private static Logger LOGGER = (Logger) LoggerFactory.getLogger(InfluxDbBenchmark.class);
 
     // token for docker influxdb install
     //private static char[] token = "kBhCr542FKn8mQcL9JhUtqqs8mTdSY7mEydJKhtUvvV938q8zScCxjYiJLKXN8aLlKQZ0Bg3kBBGkKznH2d5Fg==".toCharArray();
@@ -103,7 +103,7 @@ public class InfluxDbBenchmark {
 //        long[] milliTimesArray = new long[numSamplesPerPv];
         final long milliTimeIncrement = 1;
         long milliTimeNowPlusIncrement = timeNowMillis;
-        logger.info("first milli time: " + milliTimeNowPlusIncrement);
+        LOGGER.info("first milli time: " + milliTimeNowPlusIncrement);
 
 //        if (!usePojo) {
 //            lineProtocolArray = new String[numPvs * numSamplesPerPv];
@@ -173,7 +173,7 @@ public class InfluxDbBenchmark {
 
                 } else {
                     // unhandled scenario type, exit
-                    logger.error("Fatal error, unexpected scenario type: " + scenarioType);
+                    LOGGER.error("Fatal error, unexpected scenario type: " + scenarioType);
                     System.exit(1);
                 }
             }
@@ -182,7 +182,7 @@ public class InfluxDbBenchmark {
             milliTimeNowPlusIncrement = milliTimeNowPlusIncrement + milliTimeIncrement;
         }
 
-        logger.info("last milli time: " + (milliTimeNowPlusIncrement - milliTimeIncrement));
+        LOGGER.info("last milli time: " + (milliTimeNowPlusIncrement - milliTimeIncrement));
 
         // add final batch list and display stats for scenario
         if (scenarioType == ScenarioType.POINT) {
@@ -192,10 +192,10 @@ public class InfluxDbBenchmark {
             }
             List<Point> firstBatch = pointBatchList.get(0);
             List<Point> lastBatch = pointBatchList.get(pointBatchList.size() - 1);
-            logger.info("number of Point batches: " + pointBatchList.size());
-            logger.info("first Point batch size: " + firstBatch.size() + " last batch size: " + lastBatch.size());
-            logger.info("first Point: " + firstBatch.get(0).toLineProtocol());
-            logger.info("last Point: " + lastBatch.get(lastBatch.size() - 1).toLineProtocol());
+            LOGGER.info("number of Point batches: " + pointBatchList.size());
+            LOGGER.info("first Point batch size: " + firstBatch.size() + " last batch size: " + lastBatch.size());
+            LOGGER.info("first Point: " + firstBatch.get(0).toLineProtocol());
+            LOGGER.info("last Point: " + lastBatch.get(lastBatch.size() - 1).toLineProtocol());
 
         } else if (scenarioType == ScenarioType.LINEPROTOCOL) {
             // add final batch to list if necessary
@@ -204,25 +204,25 @@ public class InfluxDbBenchmark {
             }
             var firstBatch = lineProtocolBatchList.get(0);
             var lastBatch = lineProtocolBatchList.get(lineProtocolBatchList.size() - 1);
-            logger.info("number of line protocol batches: " + lineProtocolBatchList.size());
-            logger.info("first line protocol batch size: " + firstBatch.size() + " last batch size: " + lastBatch.size());
-            logger.info("first line protocol: " + firstBatch.get(0));
-            logger.info("last line protocol: " + lastBatch.get(lastBatch.size() - 1));
+            LOGGER.info("number of line protocol batches: " + lineProtocolBatchList.size());
+            LOGGER.info("first line protocol batch size: " + firstBatch.size() + " last batch size: " + lastBatch.size());
+            LOGGER.info("first line protocol: " + firstBatch.get(0));
+            LOGGER.info("last line protocol: " + lastBatch.get(lastBatch.size() - 1));
 
         } else if (scenarioType == ScenarioType.POJO) {
 
 //            PvPojo firstPojo = pojoArray[0];
 //            PvPojo lastPojo = pojoArray[measurementCount-1];
-//            logger.info("first pojo: " + firstPojo.pvName + " : " + firstPojo.value + " : " + firstPojo.time);
-//            logger.info("last pojo: " + lastPojo.pvName + " : " + lastPojo.value + " : " + lastPojo.time);
+//            LOGGER.info("first pojo: " + firstPojo.pvName + " : " + firstPojo.value + " : " + firstPojo.time);
+//            LOGGER.info("last pojo: " + lastPojo.pvName + " : " + lastPojo.value + " : " + lastPojo.time);
         }
 
         // calculate and display stats
         Instant t1Data = Instant.now();
         long dtMillisData = t0Data.until(t1Data, ChronoUnit.MILLIS);
         double dtSecondsData = dtMillisData / 1_000.0;
-        logger.info("measurement count: " + measurementCount);
-        logger.info("seconds to create data for test: " + dtSecondsData);
+        LOGGER.info("measurement count: " + measurementCount);
+        LOGGER.info("seconds to create data for test: " + dtSecondsData);
 
     }
 
@@ -240,7 +240,7 @@ public class InfluxDbBenchmark {
                 writeApi.writePoints(batch);
                 saveCount = saveCount + batch.size();
             } catch (InfluxException ex) {
-                logger.error("exception in writeApi.writePoints(): " + ex.getMessage());
+                LOGGER.error("exception in writeApi.writePoints(): " + ex.getMessage());
                 System.exit(1);
             }
         }
@@ -250,9 +250,9 @@ public class InfluxDbBenchmark {
         long dtMillisWrite = t0Write.until(t1Write, ChronoUnit.MILLIS);
         double dtSecondsWrite = dtMillisWrite / 1_000.0;
         double writeRate = saveCount / dtSecondsWrite;
-        logger.info("points saved to influxdb: " + saveCount);
-        logger.info("seconds to write data: " + dtSecondsWrite);
-        logger.info("rate writes/sec: " + writeRate);
+        LOGGER.info("points saved to influxdb: " + saveCount);
+        LOGGER.info("seconds to write data: " + dtSecondsWrite);
+        LOGGER.info("rate writes/sec: " + writeRate);
     }
 
     public static void benchmarkWriteLineProtocol(InfluxDBClient influxDbClient, WriteApiBlocking writeApi, int numPvs, int numSamplesPerPv) {
@@ -269,7 +269,7 @@ public class InfluxDbBenchmark {
                 writeApi.writeRecords(WritePrecision.MS, batch);
                 saveCount = saveCount + batch.size();
             } catch (InfluxException ex) {
-                logger.error("exception in writeApi.writeRecords(): " + ex.getMessage());
+                LOGGER.error("exception in writeApi.writeRecords(): " + ex.getMessage());
                 System.exit(1);
             }
         }
@@ -279,14 +279,14 @@ public class InfluxDbBenchmark {
         long dtMillisWrite = t0Write.until(t1Write, ChronoUnit.MILLIS);
         double dtSecondsWrite = dtMillisWrite / 1_000.0;
         double writeRate = saveCount / dtSecondsWrite;
-        logger.info("line protocol strings saved to influxdb: " + saveCount);
-        logger.info("seconds to write data: " + dtSecondsWrite);
-        logger.info("rate writes/sec: " + writeRate);
+        LOGGER.info("line protocol strings saved to influxdb: " + saveCount);
+        LOGGER.info("seconds to write data: " + dtSecondsWrite);
+        LOGGER.info("rate writes/sec: " + writeRate);
     }
 
     public static void benchmarkWritePojo(InfluxDBClient influxDbClient, WriteApiBlocking writeApi, int numPvs, int numSamplesPerPv) {
 
-        logger.error("POJO scenario needs to be changed to handle batching.");
+        LOGGER.error("POJO scenario needs to be changed to handle batching.");
         System.exit(1);
 
         // set up test data
@@ -301,7 +301,7 @@ public class InfluxDbBenchmark {
                 writeApi.writeMeasurement(WritePrecision.NS, pojo);
                 saveCount = saveCount + 1;
             } catch (InfluxException ex) {
-                logger.error("exception in writeApi.writeMeasurement(): " + ex.getMessage());
+                LOGGER.error("exception in writeApi.writeMeasurement(): " + ex.getMessage());
                 System.exit(1);
             }
         }
@@ -309,9 +309,9 @@ public class InfluxDbBenchmark {
         long dtMillisWrite = t0Write.until(t1Write, ChronoUnit.MILLIS);
         double dtSecondsWrite = dtMillisWrite / 1_000.0;
         double writeRate = saveCount / dtSecondsWrite;
-        logger.info("points saved to influxdb: " + saveCount);
-        logger.info("seconds to write data: " + dtSecondsWrite);
-        logger.info("rate writes/sec: " + writeRate);
+        LOGGER.info("points saved to influxdb: " + saveCount);
+        LOGGER.info("seconds to write data: " + dtSecondsWrite);
+        LOGGER.info("rate writes/sec: " + writeRate);
     }
 
     static class InfluxWriteTask implements Callable<InfluxWriteResult> {
@@ -374,7 +374,7 @@ public class InfluxDbBenchmark {
                 } else if (!isSync && !isBatch) {
                     task = InfluxWriteTask.asyncSingleTask(batch, client);
                 } else {
-                    logger.error("Unexpected case encountered generating task list isBatch false with isSync true");
+                    LOGGER.error("Unexpected case encountered generating task list isBatch false with isSync true");
                     System.exit(1);
                 }
                 taskList.add(task);
@@ -393,14 +393,14 @@ public class InfluxDbBenchmark {
                         this.writeApi.writeRecord(WritePrecision.MS, record);
                     }
                 } else {
-                    logger.error("unexpected case in InfluxWriteTask, sync API and single record");
+                    LOGGER.error("unexpected case in InfluxWriteTask, sync API and single record");
                     System.exit(1);
                 }
             } catch (InfluxException ex) {
-                logger.error("exception in writeApiBlocking.writeRecords(): " + ex.getMessage());
+                LOGGER.error("exception in writeApiBlocking.writeRecords(): " + ex.getMessage());
                 System.exit(1);
             }
-//            logger.debug("writeApi.writeRecords() wrote batch of size: " + lineProtocolBatch.size());
+//            LOGGER.debug("writeApi.writeRecords() wrote batch of size: " + lineProtocolBatch.size());
             InfluxWriteResult result = new InfluxWriteResult();
             result.setMeasurementsWritten(lineProtocolBatch.size());
             result.setStatus(true);
@@ -440,10 +440,10 @@ public class InfluxDbBenchmark {
 //        final int batchSize = 10_000;
 //        final int numThreads = 1;
 
-        logger.info("using sync API: " + isSync);
-        logger.info("writing records in batches: " + isBatch);
-        logger.info("batch size: " + batchSize);
-        logger.info("number of threads: " + numThreads);
+        LOGGER.info("using sync API: " + isSync);
+        LOGGER.info("writing records in batches: " + isBatch);
+        LOGGER.info("batch size: " + batchSize);
+        LOGGER.info("number of threads: " + numThreads);
 
         initializeTestData(ScenarioType.LINEPROTOCOL, numPvs, numSamplesPerPv, batchSize);
 
@@ -472,19 +472,19 @@ public class InfluxDbBenchmark {
                     measurementsWritten = measurementsWritten + taskResult.getMeasurementsWritten();
                 }
                 if (!success) {
-                    logger.error("fatal error, InfluxBatchWriteTask failed");
+                    LOGGER.error("fatal error, InfluxBatchWriteTask failed");
                     System.exit(1);
                 }
             }
         } catch (InterruptedException | ExecutionException ex) {
             executorService.shutdownNow();
-            logger.error("Data transmission interrupted by exception");
+            LOGGER.error("Data transmission interrupted by exception");
             Thread.currentThread().interrupt();
         }
 
         // for async API, need to force the api to fluxh and close so that all records are written before measuring performance
         if (!isSync) {
-            logger.info("flushing and closing async WriteApi");
+            LOGGER.info("flushing and closing async WriteApi");
             InfluxWriteTask.asyncFlushAndClose();
         }
 
@@ -494,11 +494,11 @@ public class InfluxDbBenchmark {
             long dtMillisWrite = t0Write.until(t1Write, ChronoUnit.MILLIS);
             double dtSecondsWrite = dtMillisWrite / 1_000.0;
             double writeRate = measurementsWritten / dtSecondsWrite;
-            logger.info("line protocol strings saved to influxdb: " + measurementsWritten);
-            logger.info("seconds to write data: " + dtSecondsWrite);
-            logger.info("rate writes/sec: " + writeRate);
+            LOGGER.info("line protocol strings saved to influxdb: " + measurementsWritten);
+            LOGGER.info("seconds to write data: " + dtSecondsWrite);
+            LOGGER.info("rate writes/sec: " + writeRate);
         } else {
-            logger.error("multithreaded write scenario failed, performance data invalid");
+            LOGGER.error("multithreaded write scenario failed, performance data invalid");
         }
     }
 
@@ -516,10 +516,11 @@ public class InfluxDbBenchmark {
         String bucketName = null;
         String bucketId = null;
         if (createBucket) {
+            LOGGER.info("creating connection for token: " + token);
+            InfluxDBClient bucketClient = InfluxDBClientFactory.create("http://localhost:8086", token);
             bucketName = "benchmark_" + System.currentTimeMillis();
             String orgId = "54c2c62884bb38a9";
-            InfluxDBClient bucketClient = InfluxDBClientFactory.create("http://localhost:8086", token);
-            logger.info("creating bucket for test: " + bucketName);
+            LOGGER.info("creating bucket for test: " + bucketName);
             Bucket bucket = bucketClient.getBucketsApi().createBucket(bucketName, orgId);
             bucketId = bucket.getId();
             bucketClient.close();
@@ -528,17 +529,17 @@ public class InfluxDbBenchmark {
             InfluxDBClient bucketWriteClient = InfluxDBClientFactory.create("http://localhost:8086", token, org, bucketName);
             WriteApiBlocking bucketWriteApi = bucketWriteClient.getWriteApiBlocking();
             List<String> initRecords = initializePreTestData(numPreTestRecords);
-            logger.info("number of pre test records written to initialize bucket: " + numPreTestRecords);
+            LOGGER.info("number of pre test records written to initialize bucket: " + numPreTestRecords);
             try {
                 bucketWriteApi.writeRecords(WritePrecision.MS, initRecords);
             } catch (InfluxException ex) {
-                logger.error("exception in writeApi.writeRecords() while initializing new bucket: " + ex.getMessage());
+                LOGGER.error("exception in writeApi.writeRecords() while initializing new bucket: " + ex.getMessage());
                 System.exit(1);
             }
             bucketWriteClient.close();
 
             final int sleepMillis = 1000;
-            logger.info("sleeping: " + sleepMillis);
+            LOGGER.info("sleeping: " + sleepMillis);
             try {
                 Thread.sleep(sleepMillis);
             } catch (InterruptedException e) {
@@ -551,7 +552,7 @@ public class InfluxDbBenchmark {
 
         InfluxDBClient influxDBClient = InfluxDBClientFactory.create("http://localhost:8086", token, org, bucketName);
 
-        logger.info("isGzipEnabled: " + influxDBClient.isGzipEnabled());
+        LOGGER.info("isGzipEnabled: " + influxDBClient.isGzipEnabled());
 
 //        benchmarkWriteDataPoints(influxDBClient, writeApi, numPvs, numSamplesPerPv);
 //        benchmarkWriteLineProtocol(influxDBClient, writeApi, numPvs, numSamplesPerPv);
@@ -565,21 +566,21 @@ public class InfluxDbBenchmark {
             QueryApi queryApi = influxDBClient.getQueryApi();
             List<FluxTable> tables = queryApi.query(flux);
             if (tables.size() != 1) {
-                logger.error("unexpected query result size: " + tables.size());
+                LOGGER.error("unexpected query result size: " + tables.size());
                 System.exit(1);
             }
             FluxTable table = tables.get(0);
             List<FluxRecord> records = table.getRecords();
             if (records.size() != 1) {
-                logger.error("unexpected table records size: " + records.size());
+                LOGGER.error("unexpected table records size: " + records.size());
                 System.exit(1);
             }
             FluxRecord record = records.get(0);
             Long bucketMeasurements = (Long) record.getValueByKey("_value");
-            logger.info("measurements in bucket: " + bucketMeasurements);
+            LOGGER.info("measurements in bucket: " + bucketMeasurements);
 
             if (bucketMeasurements != (numMeasurements + numPreTestRecords)) {
-                logger.error("bucket: " + bucketName + " does not contain expected number of measurements: " + numMeasurements);
+                LOGGER.error("bucket: " + bucketName + " does not contain expected number of measurements: " + numMeasurements);
                 System.exit(1);
             }
         }
@@ -590,7 +591,7 @@ public class InfluxDbBenchmark {
         // remove the temp bucket
         if (createBucket) {
             InfluxDBClient bucketClient = InfluxDBClientFactory.create("http://localhost:8086", token);
-            logger.info("removing test bucket: " + bucketName);
+            LOGGER.info("removing test bucket: " + bucketName);
             bucketClient.getBucketsApi().deleteBucket(bucketId);
             bucketClient.close();
         }
