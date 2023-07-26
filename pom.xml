@@ -26,13 +26,14 @@
         <main.basedir>${project.basedir}</main.basedir>
 
         <!-- Protobuf -->
-        <io.grpc.version>1.49.0</io.grpc.version>
+        <io.grpc.version>1.56.1</io.grpc.version>
         <protobuf.version>4.0.0-rc-2</protobuf.version>
         <protobuf-java-format.version>1.4</protobuf-java-format.version>
         <protoc-gen-validate.version>0.6.7</protoc-gen-validate.version>
 
         <logback.version>1.4.8</logback.version>
         <influxdb.version>6.9.0</influxdb.version>
+        <okio.version>3.3.0</okio.version>
         <mongodb.version>4.9.1</mongodb.version>
 
     </properties>
@@ -146,6 +147,12 @@
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
             <version>1.3.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okio</groupId>
+            <artifactId>okio</artifactId>
+            <version>${okio.version}</version>
         </dependency>
 
     </dependencies>
