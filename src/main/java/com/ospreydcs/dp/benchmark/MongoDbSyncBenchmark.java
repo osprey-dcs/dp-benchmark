@@ -860,8 +860,8 @@ public class MongoDbSyncBenchmark extends MongoDbBenchmarkCommon {
 
 //        benchmarkCreatePvMetadataExperiment(database);
 //        benchmarkUpdateOnePvMetadataExperiment(database);
-        benchmarkUpdateManyPvMetadataExperiment(database);
-//        benchmarkCreatePvTimeseriesDataExperimentBucket(database);
+//        benchmarkUpdateManyPvMetadataExperiment(database);
+        benchmarkCreatePvTimeseriesDataExperimentBucket(database);
 //        benchmarkCreatePvTimeseriesDataExperimentTsCollection(database);
     }
 }
